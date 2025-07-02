@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  auth_service:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      - auth_db
+    restart: always
+
+  exchange_rate_service:
+    build:
+      context: .
+      dockerfile: exchange_rate/Dockerfile
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./.env
+    depends_on:
+      - exchange_db
+      - auth_service
+    restart: always
+
+
+  auth_db:
+    image: postgres:13
+    container_name: auth_db_container
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  exchange_db:
+    image: postgres:13
+    container_name: exchange_db_container
+    environment:
+      POSTGRES_DB: ${EXCHANGE_DB_NAME}
+      POSTGRES_USER: ${EXCHANGE_DB_USER}
+      POSTGRES_PASSWORD: ${EXCHANGE_DB_PASSWORD}
+    volumes:
+      - exchange_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    restart: always
+
+volumes:
+  auth_db_data:
+  exchange_db_data:
